@@ -1,0 +1,284 @@
+openapi: 3.0.3
+info:
+  title: API Startup Project
+  description: |
+    初心者開発者向けのシンプルなAPI開発プロジェクトです。
+    ユーザー情報の取得と作成を行う基本的なCRUD APIを提供します。
+  version: 1.0.0
+  contact:
+    name: API Startup Project
+    email: contact@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000/api
+    description: 開発サーバー
+  - url: https://api.example.com/api
+    description: 本番サーバー
+
+paths:
+  /users:
+    get:
+      summary: ユーザー一覧の取得
+      description: 登録されているすべてのユーザー情報を取得します
+      operationId: getUsers
+      tags:
+        - Users
+      parameters:
+        - name: limit
+          in: query
+          description: 取得する最大件数
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: 取得開始位置
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: ユーザー一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    post:
+      summary: 新規ユーザーの作成
+      description: 新しいユーザーを作成します
+      operationId: createUser
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: ユーザーの作成に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /users/{id}:
+    get:
+      summary: 特定ユーザーの取得
+      description: 指定されたIDのユーザー情報を取得します
+      operationId: getUserById
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          description: ユーザーID
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: ユーザー情報の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ユーザーID
+          example: 1
+        name:
+          type: string
+          description: ユーザー名
+          example: "田中太郎"
+        email:
+          type: string
+          format: email
+          description: メールアドレス
+          example: "tanaka@example.com"
+        age:
+          type: integer
+          minimum: 0
+          maximum: 150
+          description: 年齢
+          example: 25
+        createdAt:
+          type: string
+          format: date-time
+          description: 作成日時
+          example: "2023-12-01T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新日時
+          example: "2023-12-01T10:30:00Z"
+      required:
+        - id
+        - name
+        - email
+        - age
+        - createdAt
+        - updatedAt
+
+    CreateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: ユーザー名
+          example: "田中太郎"
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: メールアドレス
+          example: "tanaka@example.com"
+        age:
+          type: integer
+          minimum: 0
+          maximum: 150
+          description: 年齢
+          example: 25
+      required:
+        - name
+        - email
+        - age
+
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: 総件数
+          example: 100
+        limit:
+          type: integer
+          description: 1ページあたりの件数
+          example: 20
+        offset:
+          type: integer
+          description: 取得開始位置
+          example: 0
+        hasNext:
+          type: boolean
+          description: 次のページが存在するか
+          example: true
+      required:
+        - total
+        - limit
+        - offset
+        - hasNext
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: エラーコード
+            message:
+              type: string
+              description: エラーメッセージ
+          required:
+            - code
+            - message
+      required:
+        - success
+        - error
+
+  responses:
+    BadRequest:
+      description: リクエストが不正です
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error:
+              code: "BAD_REQUEST"
+              message: "リクエストパラメータが不正です"
+
+    NotFound:
+      description: リソースが見つかりません
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error:
+              code: "NOT_FOUND"
+              message: "指定されたユーザーが見つかりません"
+
+    InternalServerError:
+      description: サーバー内部エラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error:
+              code: "INTERNAL_SERVER_ERROR"
+              message: "サーバー内部エラーが発生しました"
+
+tags:
+  - name: Users
+    description: ユーザー関連のAPI
