@@ -9,6 +9,61 @@
 - **ORM**: Drizzle ORM
 - **API 仕様書**: OpenAPI 3.0 (YAML)
 
+## 事前準備
+
+このプロジェクトを始める前に、以下のソフトウェアをインストールしてください。
+
+### 必須ソフトウェア
+
+#### 1. Node.js (v18.0.0 以上)
+
+- **ダウンロード**: https://nodejs.org/
+- **確認方法**:
+  ```bash
+  node --version  # v18.0.0 以上
+  npm --version   # v9.0.0 以上
+  ```
+- **説明**: API サーバーの実行環境として必要です
+
+#### 2. Docker Desktop
+
+- **Windows**: https://www.docker.com/products/docker-desktop/
+- **Mac**: https://www.docker.com/products/docker-desktop/
+- **Linux**: https://docs.docker.com/engine/install/
+- **確認方法**:
+  ```bash
+  docker --version
+  docker compose version
+  ```
+- **説明**: MySQL データベースをコンテナで実行するために必要です
+- **Windows の注意事項**:
+  - WSL 2 が必要です（Docker Desktop インストール時に自動設定されます）
+  - インストール後、PC の再起動が必要な場合があります
+  - Docker Desktop を起動してから、セットアップを実行してください
+
+#### 3. Git (推奨)
+
+- **ダウンロード**: https://git-scm.com/
+- **説明**: プロジェクトのクローンやバージョン管理に使用します
+
+### インストール確認
+
+すべてのソフトウェアが正しくインストールされているか確認してください：
+
+**Linux/Mac の場合:**
+
+```bash
+node --version && npm --version && docker --version && docker compose version
+```
+
+**Windows の場合:**
+
+```powershell
+node --version; npm --version; docker --version; docker compose version
+```
+
+すべてのコマンドでバージョン情報が表示されれば、準備完了です！
+
 ## プロジェクト構造
 
 ```
@@ -31,6 +86,8 @@ API-Startup-Project/
 ├── drizzle/
 │   └── migrations/         # データベースマイグレーション
 ├── scripts/
+│   ├── setup.sh           # セットアップスクリプト (Linux/Mac)
+│   ├── setup.ps1          # セットアップスクリプト (Windows)
 │   └── seed.ts            # サンプルデータ投入スクリプト
 ├── package.json
 ├── tsconfig.json
@@ -42,6 +99,8 @@ API-Startup-Project/
 
 ### 🚀 ワンコマンドで起動（推奨）
 
+**Linux/Mac の場合:**
+
 ```bash
 # 初回セットアップ（すべて自動実行）
 npm run setup
@@ -49,6 +108,22 @@ npm run setup
 # 開発サーバーをクイック起動
 npm run quick-start
 ```
+
+**Windows の場合:**
+
+```powershell
+# 初回セットアップ（すべて自動実行）
+.\scripts\setup.ps1
+
+# 開発サーバーをクイック起動
+npm run quick-start
+```
+
+> **Note**: Windows で PowerShell スクリプトの実行がブロックされる場合は、以下のコマンドを実行してください：
+>
+> ```powershell
+> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+> ```
 
 ### 📋 手動セットアップ手順
 
@@ -67,8 +142,16 @@ cp .env.example .env
 
 #### 3. データベースの起動
 
+**Linux/Mac の場合:**
+
 ```bash
 cd docker && docker compose up -d
+```
+
+**Windows の場合:**
+
+```powershell
+cd docker; docker compose up -d
 ```
 
 #### 4. データベーススキーマの作成
@@ -264,6 +347,8 @@ code api-spec/openapi.yaml
 
 ### 🛑 停止方法
 
+**Linux/Mac の場合:**
+
 ```bash
 # API サーバー停止
 Ctrl + C
@@ -273,6 +358,19 @@ cd docker && docker compose down
 
 # すべてのコンテナ停止
 docker compose down --volumes
+```
+
+**Windows の場合:**
+
+```powershell
+# API サーバー停止
+Ctrl + C
+
+# データベース停止
+cd docker; docker compose down
+
+# すべてのコンテナ停止
+cd docker; docker compose down --volumes
 ```
 
 ## 📚 学習ポイント
@@ -358,6 +456,8 @@ curl -X POST http://localhost:3000/api/users \
 
 ### ❌ データベース接続エラーが発生する場合
 
+**Linux/Mac の場合:**
+
 ```bash
 # Docker コンテナの状態確認
 cd docker && docker compose ps
@@ -369,7 +469,22 @@ docker compose up -d
 docker compose logs mysql
 ```
 
+**Windows の場合:**
+
+```powershell
+# Docker コンテナの状態確認
+cd docker; docker compose ps
+
+# コンテナが停止している場合は起動
+docker compose up -d
+
+# ログでエラーを確認
+docker compose logs mysql
+```
+
 ### ❌ ポート 3000 が使用中のエラー
+
+**Linux/Mac の場合:**
 
 ```bash
 # ポートを使用しているプロセスを確認
@@ -377,6 +492,16 @@ lsof -ti:3000
 
 # プロセスを停止
 kill -9 <プロセスID>
+```
+
+**Windows の場合:**
+
+```powershell
+# ポートを使用しているプロセスを確認
+netstat -ano | findstr :3000
+
+# プロセスを停止（<PID>は上記で確認したプロセスID）
+taskkill /PID <PID> /F
 ```
 
 ### ❌ TypeScript コンパイルエラーが発生する場合
@@ -401,12 +526,24 @@ npm run db:seed
 
 ### 🔄 完全リセット（開発時）
 
+**Linux/Mac の場合:**
+
 ```bash
 # すべてのコンテナとボリュームを削除
 cd docker && docker compose down --volumes
 
 # 再セットアップ
 npm run setup
+```
+
+**Windows の場合:**
+
+```powershell
+# すべてのコンテナとボリュームを削除
+cd docker; docker compose down --volumes
+
+# 再セットアップ
+.\scripts\setup.ps1
 ```
 
 ## ライセンス
